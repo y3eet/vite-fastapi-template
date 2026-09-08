@@ -3,7 +3,6 @@ from sqlmodel import Session
 from app.db.session import get_session
 from app.models.user import UserRead, UserCreate, UserUpdate
 from app.models.lib import Page
-from app.models.user import UserRead
 from app.services.user import UserService
 
 user_router = APIRouter(prefix="/users", tags=["users"])
