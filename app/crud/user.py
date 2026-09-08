@@ -21,11 +21,11 @@ class UserCrud:
         return user
 
     def update_user(self, user: User, user_update: UserUpdate) -> User:
-        user_data = user.model_dump(exclude_unset=True)
         update_data = user_update.model_dump(exclude_unset=True)
-        for field in user_data:
-            if field in update_data:
-                setattr(user, field, update_data[field])
+
+        for field, value in update_data.items():
+            setattr(user, field, value)
+
         self.session.add(user)
         self.session.commit()
         self.session.refresh(user)
