@@ -4,10 +4,8 @@ from datetime import datetime
 
 
 class UserBase(SQLModel):
-    username: str | None = None
-    email: EmailStr = Field(
-        sa_column=Column("email", String, unique=True, nullable=False)
-    )
+    username: str | None = Field(max_length=50)
+    email: EmailStr = Field(unique=True)
 
 
 class User(UserBase, table=True):
@@ -15,10 +13,10 @@ class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     hashed_password: str
     blocked: bool = False
-    created_at: datetime = Field(default_factory=datetime.now())
+    created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(
-        default_factory=datetime.now(),
-        sa_column=Column("updated_at", default=datetime.now(), onupdate=datetime.now()),
+        default_factory=datetime.now,
+        sa_column=Column("updated_at", default=datetime.now, onupdate=datetime.now),
     )
 
 
@@ -31,5 +29,5 @@ class UserRead(UserBase):
 
 
 class UserUpdate(SQLModel):
-    email: str | None = None
+    email: EmailStr | None = None
     username: str | None = None
