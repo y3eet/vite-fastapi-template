@@ -2,6 +2,7 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.api.users import user_router
+from app.api.auth import auth_router
 from app.core.config import settings
 
 app = FastAPI()
@@ -18,4 +19,5 @@ app.add_middleware(
 
 api_router = APIRouter(prefix="/api")
 api_router.include_router(user_router)
+api_router.include_router(auth_router)
 app.include_router(api_router)

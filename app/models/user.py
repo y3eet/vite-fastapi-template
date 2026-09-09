@@ -34,3 +34,11 @@ class UserRead(UserBase):
 class UserUpdate(SQLModel):
     email: EmailStr | None = None
     username: str | None = None
+
+
+class UserPayload(SQLModel):
+    sub: str
+    iat: datetime
+    exp: datetime
+    jti: str
+    claims: UserRead

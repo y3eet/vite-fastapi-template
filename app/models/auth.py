@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import Optional
+from pydantic import EmailStr
 from sqlmodel import SQLModel, Field, Relationship
 
 from app.models import user
@@ -11,6 +12,12 @@ class TokenStatus(str, Enum):
     rotated = "rotated"  # consumed normally during refresh
     revoked = "revoked"  # explicitly killed by user/admin (e.g. logout, manual session revoke)
     compromised = "compromised"  # killed due to detected reuse/theft
+
+
+class RefreshTokenUpdate(SQLModel):
+    status: Optional[TokenStatus]
+    used_at: Optional[datetime] = Field(default=None)
+    revoked_at: Optional[datetime] = Field(default=None)
 
 
 class RefreshToken(SQLModel, table=True):
@@ -43,3 +50,8 @@ class RefreshToken(SQLModel, table=True):
     def is_valid(self) -> bool:
         """Check if this token can currently be used to refresh."""
         return self.status == TokenStatus.active and self.expires_at > datetime.now()
+
+
+class LoginRequest(SQLModel):
+    email: EmailStr
+    password: str

@@ -1,10 +1,10 @@
 from fastapi import Request, Response
 from app.core.config import settings
 import jwt
-import datetime
 import uuid
 from datetime import datetime, timedelta, timezone
 from app.models.user import UserPayload, UserRead
+from datetime import datetime, timedelta
 
 ACCESS_SECRET_KEY = settings.JWT_ACCESS_SECRET_KEY
 REFRESH_SECRET_KEY = settings.JWT_REFRESH_SECRET_KEY
@@ -15,7 +15,6 @@ ALGORITHM = "HS256"
 
 
 class Jwt:
-
     @staticmethod
     def get_access_token(request: Request):
         return request.cookies.get("access_token")
@@ -24,34 +23,45 @@ class Jwt:
     def get_refresh_token(request: Request):
         return request.cookies.get("refresh_token")
 
-    def create_access_token(user: UserRead) -> str:
+    @staticmethod
+    def create_access_token(user: UserRead):
         now = datetime.now(timezone.utc)
+        exp = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         payload = UserPayload(
             sub=str(user.id),
             iat=now,
-            exp=now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+            exp=exp,
             jti=str(uuid.uuid4()),
             claims=user,
         )
-        return jwt.encode(payload.model_dump(), ACCESS_SECRET_KEY, algorithm=ALGORITHM)
+        return (
+            jwt.encode(payload.model_dump(), ACCESS_SECRET_KEY, algorithm=ALGORITHM),
+            exp,
+        )
 
+    @staticmethod
     def create_refresh_token(user: UserRead):
         now = datetime.now(timezone.utc)
+        exp = now + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
         payload = UserPayload(
             sub=str(user.id),
             iat=now,
-            exp=now + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES),
+            exp=exp,
             jti=str(uuid.uuid4()),
             claims=user,
         )
-        return jwt.encode(payload.model_dump(), REFRESH_SECRET_KEY, algorithm=ALGORITHM)
+        return (
+            jwt.encode(payload.model_dump(), REFRESH_SECRET_KEY, algorithm=ALGORITHM),
+            exp,
+        )
 
     @staticmethod
     def decode(token, token_type="access"):
         secret_key = ACCESS_SECRET_KEY
         if token_type == "refresh":
             secret_key = REFRESH_SECRET_KEY
-        return jwt.decode(token, secret_key, algorithms=[Jwt.ALGORITHM])
+        decoded_token = jwt.decode(token, secret_key, algorithms=[Jwt.ALGORITHM])
+        return UserPayload.model_validate(decoded_token)
 
     @staticmethod
     def set_tokens(response: Response, access_token: str, refresh_token: str):
@@ -61,11 +71,7 @@ class Jwt:
             httponly=True,
             secure=True,
             samesite="none",
-            max_age=int(
-                datetime.timedelta(
-                    minutes=Jwt.ACCESS_TOKEN_EXPIRE_MINUTES
-                ).total_seconds()
-            ),
+            max_age=int(timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES).total_seconds()),
             path="/",
             domain=settings.COOKIE_DOMAIN,
         )
@@ -76,9 +82,7 @@ class Jwt:
             secure=True,
             samesite="none",
             max_age=int(
-                datetime.timedelta(
-                    minutes=Jwt.REFRESH_TOKEN_EXPIRE_MINUTES
-                ).total_seconds()
+                timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES).total_seconds()
             ),
             path="/",
             domain=settings.COOKIE_DOMAIN,
