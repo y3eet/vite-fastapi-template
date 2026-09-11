@@ -1,22 +1,39 @@
+import { defineConfig, loadEnv } from "vite";
+import { heyApiPlugin } from "@hey-api/vite-plugin";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import path from "path";
 
-// https://vite.dev/config/
-export default defineConfig({
-  resolve: {
-    alias: {
-      "@": path.resolve(import.meta.dirname, "./src"),
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+
+  return {
+    resolve: {
+      alias: {
+        "@": path.resolve(import.meta.dirname, "./src"),
+      },
     },
-  },
-  plugins: [
-    tailwindcss(),
-    tanstackRouter({
-      target: "react",
-      autoCodeSplitting: true,
-    }),
-    react(),
-  ],
+    plugins: [
+      heyApiPlugin({
+        config: {
+          input: {
+            path: env.VITE_API_URL + "/openapi.json",
+            watch: true,
+          },
+          output: "src/client",
+          plugins: [
+            "@hey-api/client-fetch",
+            "@hey-api/typescript",
+            "@hey-api/sdk",
+            "@tanstack/react-query",
+          ],
+        },
+        vite: { apply: "serve" },
+      }),
+      tailwindcss(),
+      tanstackRouter({ target: "react", autoCodeSplitting: true }),
+      react(),
+    ],
+  };
 });
