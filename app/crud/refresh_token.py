@@ -34,6 +34,12 @@ class RefreshTokenCrud:
             )
         ).first()
 
+    def get_token_by_hash(self, token_hash: str):
+        stmt = select(RefreshToken)
+        return self.session.exec(
+            stmt.where(RefreshToken.token_hash == token_hash)
+        ).first()
+
     def delete_token(self, refresh_token: RefreshToken):
         self.session.delete(refresh_token)
         self.session.commit()

@@ -17,3 +17,13 @@ def login(
 ):
     service = AuthService(session=session, request=request, response=response)
     return service.login(creds=credentials)
+
+
+@auth_router.post("/refresh", response_model=UserRead)
+def refresh(
+    request: Request,
+    response: Response,
+    session: Session = Depends(get_session),
+):
+    service = AuthService(session=session, request=request, response=response)
+    return service.refresh()

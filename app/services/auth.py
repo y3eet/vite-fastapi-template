@@ -70,6 +70,47 @@ class AuthService:
 
         return user
 
+    def refresh(self):
+        refresh_token = Jwt.get_refresh_token(request=self.request)
+        if not refresh_token:
+            raise HTTPException(401, detail="No refresh token found")
+        hashed_token = hashlib.sha256(refresh_token.encode("utf-8")).hexdigest()
+        db_token = self.rt_crud.get_token_by_hash(token_hash=hashed_token)
+        if not db_token:
+            raise HTTPException(401, detail="No refresh token record found")
+        user = db_token.user
+        new_access_token, _ = Jwt.create_access_token(
+            user=UserRead.model_validate(user)
+        )
+        new_refresh_token, exp = Jwt.create_refresh_token(
+            user=UserRead.model_validate(user)
+        )
+        token_hash = hashlib.sha256(new_refresh_token.encode("utf-8")).hexdigest()
+        ua_string = self.request.headers.get("User-Agent", "")
+        xff = self.request.headers.get("X-Forwarded-For")
+        ip_address = (
+            xff.split(",")[0] if xff else self.request.client.host
+        ) or "0.0.0.0"
+        device_label = self.build_device_label(ua_string=ua_string)
+        # Save refresh token to db
+        self.rt_crud.create_refresh_token(
+            refresh_token=RefreshToken(
+                user_id=user.id,
+                token_hash=token_hash,
+                device_label=device_label,
+                user_agent=ua_string,
+                ip_address=ip_address,
+                expires_at=exp,
+            )
+        )
+        self.rt_crud.delete_token(refresh_token=db_token)
+        Jwt.set_tokens(
+            response=self.response,
+            access_token=new_access_token,
+            refresh_token=new_refresh_token,
+        )
+        return user
+
     @staticmethod
     def build_device_label(ua_string: str) -> str:
         ua = parse(ua_string)
