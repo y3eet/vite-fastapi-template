@@ -5,6 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     ENV: str | None = "DEV"
 
+    PORT: str | None = "8000"
     FRONTEND_URL: str | None = "http://localhost:5173"
     DATABASE_URL: str
     DEBUG: bool = False
