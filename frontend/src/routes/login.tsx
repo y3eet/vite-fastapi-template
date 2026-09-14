@@ -1,7 +1,6 @@
 import { LoginForm } from "@/components/forms/login/login-form";
 import { createFileRoute } from "@tanstack/react-router";
 import { GalleryVerticalEnd } from "lucide-react";
-
 export const Route = createFileRoute("/login")({
   component: RouteComponent,
 });
@@ -15,7 +14,6 @@ function RouteComponent() {
             <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <GalleryVerticalEnd className="size-4" />
             </div>
-            {import.meta.env.BASE_URL}
             Acme Inc.
           </a>
         </div>
