@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import path from "path";
-
+import { devtools } from "@tanstack/devtools-vite";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     plugins: [
+      devtools(),
       heyApiPlugin({
         config: {
           input: {
