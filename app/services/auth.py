@@ -23,6 +23,13 @@ class AuthService:
         self.response = response
         self.request = request
 
+    def current_user(self):
+        access_token = Jwt.get_access_token(request=self.request)
+        if not access_token:
+            raise HTTPException(401, detail="No access token found")
+        user = Jwt.decode(token=access_token)
+        return user
+
     def login(self, creds: LoginRequest):
         user = self.user_crud.get_user_by_email(email=creds.email)
         if not user:
