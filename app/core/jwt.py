@@ -60,7 +60,7 @@ class Jwt:
         secret_key = ACCESS_SECRET_KEY
         if token_type == "refresh":
             secret_key = REFRESH_SECRET_KEY
-        decoded_token = jwt.decode(token, secret_key, algorithms=[Jwt.ALGORITHM])
+        decoded_token = jwt.decode(token, secret_key, algorithms=[ALGORITHM])
         return UserPayload.model_validate(decoded_token)
 
     @staticmethod
